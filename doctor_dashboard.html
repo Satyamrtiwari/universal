@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleHealth Doctor Dashboard (Test)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f7; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        h1, h2 { color: #2c3e50; }
+        .booking-item { border-left: 5px solid #3498db; padding: 15px; background: #f8fbfe; margin-bottom: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; }
+        .btn-green { background: #27ae60; }
+        .btn-red { background: #e74c3c; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 0.9em; }
+        input { padding: 12px; width: 400px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .pending { background: #f1c40f; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Doctor Dashboard (Testing)</h1>
+        <p>This is a simplified interface for doctors to manage incoming consultation requests.</p>
+
+        <div class="card">
+            <h3>🔑 Authentication</h3>
+            <p>Paste the Doctor's Access Token below:</p>
+            <input type="text" id="tokenInput" placeholder="Doctor Access Token">
+            <button class="btn" onclick="fetchRequests()">Fetch Consultations</button>
+        </div>
+
+        <div class="card">
+            <h3>📑 Pending Requests</h3>
+            <div id="bookingList">
+                <p>No requests fetched yet. Please provide a token and click "Fetch".</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🔍 API Response Logs</h3>
+            <pre id="logs">Activity logs will appear here...</pre>
+        </div>
+    </div>
+
+    <script>
+        async function fetchRequests() {
+            const token = document.getElementById('tokenInput').value;
+            if (!token) { alert("Please provide a token!"); return; }
+
+            try {
+                const res = await fetch('http://localhost:8080/api/consultation/list/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('logs').innerText = JSON.stringify(data, null, 2);
+                
+                const listDiv = document.getElementById('bookingList');
+                listDiv.innerHTML = '';
+
+                if (data.length === 0) {
+                    listDiv.innerHTML = '<p>No pending consultations found.</p>';
+                    return;
+                }
+
+                data.forEach(req => {
+                    const item = document.createElement('div');
+                    item.className = 'booking-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong>Specialty:</strong> ${req.specialty_required} <br>
+                            <strong>Summary:</strong> ${req.ai_summary} <br>
+                            <span class="status-badge pending">${req.status}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-green" onclick="alert('Starting Call: ${req.room_name}')">Join Call</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            } catch (err) {
+                document.getElementById('logs').innerText = "Error: " + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

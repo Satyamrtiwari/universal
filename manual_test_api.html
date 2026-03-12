@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleHealth API Tester</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+        button { padding: 10px 15px; cursor: pointer; background: #6200ee; color: white; border: none; border-radius: 4px; }
+        input { padding: 8px; width: 300px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>TeleHealth API Manual Tester</h1>
+    <p>Both servers must be running (FastAPI on 8000, Django on 8080).</p>
+
+    <div class="card">
+        <h3>1. Register / Login</h3>
+        <button onclick="testRegister()">Run Register Test</button>
+        <pre id="registerRes">Output will appear here...</pre>
+    </div>
+
+    <div class="card">
+        <h3>2. AI Symptom Check</h3>
+        <button onclick="testAI()">Check Symptoms ("I have a bad cough")</button>
+        <pre id="aiRes">Output will appear here...</pre>
+    </div>
+
+    <div class="card">
+        <h3>3. Pharmacy & Medicine Search</h3>
+        <button onclick="testPharmacy()">Search Pharmacies (Nabha)</button>
+        <button onclick="testAvailability()">Check Paracetamol Availability</button>
+        <pre id="pharmRes">Output will appear here...</pre>
+    </div>
+
+    <div class="card">
+        <h3>4. Request Consultation (Booking)</h3>
+        <p>Paste the access token from Step 1 below:</p>
+        <input type="text" id="tokenInput" placeholder="Access Token">
+        <button onclick="testConsultation()">Book Consultation</button>
+        <pre id="consultRes">Output will appear here...</pre>
+    </div>
+
+    <script>
+        let savedToken = "";
+
+        async function testRegister() {
+            const res = await fetch('http://localhost:8080/api/auth/register/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: 'raju_' + Math.floor(Math.random() * 1000),
+                    password: 'password123',
+                    role: 'PATIENT',
+                    phone_number: '9876543210',
+                    area_village: 'Nabha'
+                })
+            });
+            const data = await res.json();
+            if (data.tokens) {
+                savedToken = data.tokens.access;
+                document.getElementById('tokenInput').value = savedToken;
+            }
+            document.getElementById('registerRes').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function testAI() {
+            const res = await fetch('http://localhost:8000/api/ai/symptom-check/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text_content: 'I have a high fever and a dry cough for 3 days.',
+                    language: 'en'
+                })
+            });
+            document.getElementById('aiRes').innerText = JSON.stringify(await res.json(), null, 2);
+        }
+
+        async function testPharmacy() {
+            const res = await fetch('http://localhost:8080/api/pharmacy/list/?area=Nabha');
+            document.getElementById('pharmRes').innerText = JSON.stringify(await res.json(), null, 2);
+        }
+
+        async function testAvailability() {
+            const res = await fetch('http://localhost:8080/api/pharmacy/availability/?medicine=Paracetamol&area=Nabha');
+            document.getElementById('pharmRes').innerText = JSON.stringify(await res.json(), null, 2);
+        }
+
+        async function testConsultation() {
+            const token = document.getElementById('tokenInput').value;
+            const res = await fetch('http://localhost:8080/api/consultation/request/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    specialty_required: 'General Physician',
+                    ai_summary: 'Patient has fever and cough. Urgency: Medium.',
+                    urgency_level: 'MEDIUM'
+                })
+            });
+            document.getElementById('consultRes').innerText = JSON.stringify(await res.json(), null, 2);
+        }
+    </script>
+</body>
+</html>
