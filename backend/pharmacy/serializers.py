@@ -18,3 +18,15 @@ class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
         fields = '__all__'
+        
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+        # Only show quantity to Pharmacists
+        if request and request.user.is_authenticated:
+            if request.user.role != 'PHARMACIST':
+                representation.pop('quantity', None)
+        else:
+            # Hide for anonymous users as well
+            representation.pop('quantity', None)
+        return representation

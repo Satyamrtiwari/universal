@@ -9,34 +9,48 @@
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
         button { padding: 10px 15px; cursor: pointer; background: #6200ee; color: white; border: none; border-radius: 4px; }
-        input { padding: 8px; width: 300px; margin-bottom: 10px; }
+        input, textarea { padding: 8px; width: 300px; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
-    <h1>TeleHealth API Manual Tester</h1>
+    <h1>🏥 TeleHealth API Manual Tester</h1>
     <p>Both servers must be running (FastAPI on 8000, Django on 8080).</p>
 
     <div class="card">
         <h3>1. Register / Login</h3>
+        <p>Simple registration (Username/Password)</p>
         <button onclick="testRegister()">Run Register Test</button>
         <pre id="registerRes">Output will appear here...</pre>
     </div>
 
     <div class="card">
-        <h3>2. AI Symptom Check</h3>
+        <h3>2. Complete Profile</h3>
+        <p>This happens AFTER login. Enter details below:</p>
+        <input type="text" id="fname" placeholder="First Name">
+        <input type="text" id="lname" placeholder="Last Name">
+        <input type="number" id="age" placeholder="Age">
+        <input type="text" id="phone" placeholder="Phone Number">
+        <textarea id="address" placeholder="Full Address"></textarea>
+        <input type="text" id="area" placeholder="Village/Area">
+        <button onclick="testProfile()">Save Profile</button>
+        <pre id="profileRes">Output will appear here...</pre>
+    </div>
+
+    <div class="card">
+        <h3>3. AI Symptom Check</h3>
         <button onclick="testAI()">Check Symptoms ("I have a bad cough")</button>
         <pre id="aiRes">Output will appear here...</pre>
     </div>
 
     <div class="card">
-        <h3>3. Pharmacy & Medicine Search</h3>
+        <h3>4. Pharmacy & Medicine Search</h3>
         <button onclick="testPharmacy()">Search Pharmacies (Nabha)</button>
         <button onclick="testAvailability()">Check Paracetamol Availability</button>
         <pre id="pharmRes">Output will appear here...</pre>
     </div>
 
     <div class="card">
-        <h3>4. Request Consultation (Booking)</h3>
+        <h3>5. Request Consultation (Booking)</h3>
         <p>Paste the access token from Step 1 below:</p>
         <input type="text" id="tokenInput" placeholder="Access Token">
         <button onclick="testConsultation()">Book Consultation</button>
@@ -51,11 +65,9 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: 'raju_' + Math.floor(Math.random() * 1000),
+                    username: 'user_' + Math.floor(Math.random() * 1000),
                     password: 'password123',
-                    role: 'PATIENT',
-                    phone_number: '9876543210',
-                    area_village: 'Nabha'
+                    role: 'PATIENT'
                 })
             });
             const data = await res.json();
@@ -64,6 +76,26 @@
                 document.getElementById('tokenInput').value = savedToken;
             }
             document.getElementById('registerRes').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function testProfile() {
+            const token = document.getElementById('tokenInput').value || savedToken;
+            const res = await fetch('http://localhost:8080/api/auth/profile/', {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    first_name: document.getElementById('fname').value,
+                    last_name: document.getElementById('lname').value,
+                    age: document.getElementById('age').value,
+                    phone_number: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    area_village: document.getElementById('area').value
+                })
+            });
+            document.getElementById('profileRes').innerText = JSON.stringify(await res.json(), null, 2);
         }
 
         async function testAI() {
@@ -85,7 +117,8 @@
 
         async function testAvailability() {
             const res = await fetch('http://localhost:8080/api/pharmacy/availability/?medicine=Paracetamol&area=Nabha');
-            document.getElementById('pharmRes').innerText = JSON.stringify(await res.json(), null, 2);
+            const data = await res.json();
+            document.getElementById('pharmRes').innerText = JSON.stringify(data, null, 2);
         }
 
         async function testConsultation() {

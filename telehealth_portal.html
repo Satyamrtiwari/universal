@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleHealth Pro Portal</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: #0f172a; color: white; padding: 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover { background: #1e293b; }
+        .nav-item.active { background: var(--primary); }
+
+        /* Main Content */
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+
+        h2 { margin-top: 0; font-size: 1.25rem; }
+        label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; color: var(--text-main); }
+        input, select, textarea { 
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .btn { 
+            background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 6px; 
+            font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+
+        pre { background: #1e293b; color: #34d399; padding: 16px; border-radius: 8px; font-size: 0.875rem; overflow-x: auto; max-height: 300px; }
+        .status-pill { padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .pill-pending { background: #fef3c7; color: #92400e; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">🏥 TeleHealth Pro</div>
+        <div class="nav-item active" onclick="showSection('auth')">🔐 Auth & Profile</div>
+        <div class="nav-item" onclick="showSection('patient')">🧑 Patient Dashboard</div>
+        <div class="nav-item" onclick="showSection('doctor')">🩺 Doctor Dashboard</div>
+        <div class="nav-item" onclick="showSection('pharmacy')">💊 Pharmacy Portal</div>
+    </div>
+
+    <div class="main">
+        <!-- Auth Section -->
+        <div id="auth" class="section active">
+            <h1>Authentication & Profile</h1>
+            <div class="grid">
+                <div class="card">
+                    <h2>Step 1: Register/Login</h2>
+                    <label>Username</label>
+                    <input type="text" id="username" value="user_test">
+                    <label>Password</label>
+                    <input type="password" id="password" value="password123">
+                    <label>Role</label>
+                    <select id="role">
+                        <option value="PATIENT">Patient</option>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="PHARMACIST">Pharmacist</option>
+                    </select>
+                    <button class="btn" onclick="apiAuth('register')">Register</button>
+                    <button class="btn btn-outline" onclick="apiAuth('login')">Login</button>
+                </div>
+                <div class="card">
+                    <h2>Step 2: Complete Profile</h2>
+                    <label>Full Name</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="fname" placeholder="First">
+                        <input type="text" id="lname" placeholder="Last">
+                    </div>
+                    <label>Age</label>
+                    <input type="number" id="uage" placeholder="e.g. 25">
+                    <label>Phone</label>
+                    <input type="text" id="uphone" placeholder="9876543210">
+                    <button class="btn" onclick="apiProfile()">Update Profile</button>
+                </div>
+            </div>
+            <div class="card">
+                <h2>System Logs</h2>
+                <pre id="authLogs">Waiting for action...</pre>
+            </div>
+        </div>
+
+        <!-- Patient Section -->
+        <div id="patient" class="section">
+            <h1>Patient Dashboard</h1>
+            <div class="grid">
+                <div class="card">
+                    <h2>AI Symptom Checker</h2>
+                    <textarea id="symptoms" placeholder="How are you feeling? (English, Hindi, Punjabi)" rows="3"></textarea>
+                    <button class="btn" onclick="apiSymptomCheck()">Analyze Symptoms</button>
+                    <pre id="aiResult" style="margin-top:20px;">AI Analysis will appear here...</pre>
+                </div>
+                <div class="card">
+                    <h2>Book Consultation</h2>
+                    <label>Specialty Needed</label>
+                    <input type="text" id="specialty" value="General Physician">
+                    <button class="btn" onclick="apiBookConsultation()">Request Consultation</button>
+                    <p style="font-size: 0.8rem; color: var(--text-sub); margin-top: 10px;">
+                        This will automatically use your AI summary and generate a private video room.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Section -->
+        <div id="doctor" class="section">
+            <h1>Doctor Terminal</h1>
+            <div class="card">
+                <h2>Incoming Requests</h2>
+                <button class="btn btn-outline" onclick="apiFetchRequests()">Refresh List</button>
+                <div id="requestList" style="margin-top:20px;">
+                    <p>No appointments found. Fetching...</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Prescription Pad</h2>
+                <label>Consultation ID</label>
+                <input type="text" id="targetConsultId" placeholder="ID from list above">
+                <label>Diagnosis</label>
+                <textarea id="diagnosis" rows="2"></textarea>
+                <label>Prescribed Medicines</label>
+                <textarea id="meds" rows="3" placeholder="Medicine name, dosage, timing"></textarea>
+                <button class="btn" onclick="apiSubmitPrescription()">Finalize & Issue Prescription</button>
+            </div>
+        </div>
+
+        <!-- Pharmacy Section -->
+        <div id="pharmacy" class="section">
+            <h1>Pharmacy Portal</h1>
+            <div class="grid">
+                <div class="card">
+                    <h2>Search Medicine</h2>
+                    <label>Medicine Name</label>
+                    <input type="text" id="medSearch" value="Paracetamol">
+                    <label>Area</label>
+                    <input type="text" id="areaSearch" value="Nabha">
+                    <button class="btn" onclick="apiSearchPharmacy()">Find Availability</button>
+                </div>
+                <div class="card">
+                    <h2>Pharmacist Stock View</h2>
+                    <p>Only visible to users with PHARMACIST role.</p>
+                    <button class="btn btn-outline" onclick="alert('Fetching stock...')">Manage Inventory</button>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Inventory Results</h2>
+                <pre id="pharmLogs">Search results will appear here...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let TOKEN = "";
+        let AI_SUMMARY = "";
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        async function apiAuth(type) {
+            const url = `http://localhost:8080/api/auth/${type}/`;
+            const payload = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.tokens) TOKEN = data.tokens.access;
+                document.getElementById('authLogs').innerText = JSON.stringify(data, null, 2);
+            } catch (e) { document.getElementById('authLogs').innerText = "Error: " + e; }
+        }
+
+        async function apiProfile() {
+            const res = await fetch('http://localhost:8080/api/auth/profile/', {
+                method: 'PATCH',
+                headers: { 
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({
+                    first_name: document.getElementById('fname').value,
+                    last_name: document.getElementById('lname').value,
+                    age: document.getElementById('uage').value,
+                    phone_number: document.getElementById('uphone').value
+                })
+            });
+            document.getElementById('authLogs').innerText = JSON.stringify(await res.json(), null, 2);
+        }
+
+        async function apiSymptomCheck() {
+            const res = await fetch('http://localhost:8000/api/ai/symptom-check/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text_content: document.getElementById('symptoms').value,
+                    language: 'en'
+                })
+            });
+            const data = await res.json();
+            AI_SUMMARY = data.analysis || "No summary available";
+            document.getElementById('aiResult').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function apiBookConsultation() {
+            const res = await fetch('http://localhost:8080/api/consultation/request/', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({
+                    specialty_required: document.getElementById('specialty').value,
+                    ai_summary: AI_SUMMARY,
+                    urgency_level: 'MEDIUM'
+                })
+            });
+            const data = await res.json();
+            alert("Consultation Requested! Room ID: " + data.room_name);
+        }
+
+        async function apiFetchRequests() {
+            const res = await fetch('http://localhost:8080/api/consultation/list/', {
+                headers: { 'Authorization': `Bearer ${TOKEN}` }
+            });
+            const data = await res.json();
+            const list = document.getElementById('requestList');
+            list.innerHTML = "";
+            data.forEach(req => {
+                list.innerHTML += `
+                    <div style="border:1px solid #eee; padding:15px; margin-bottom:10px; border-radius:8px;">
+                        <strong>ID:</strong> ${req.id} | <strong>Status:</strong> ${req.status} <br>
+                        <strong>Patient Story:</strong> ${req.ai_summary} <br>
+                        <button class="btn btn-outline" onclick="window.open('https://meet.jit.si/${req.room_name}')">Start Video Call</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function apiSubmitPrescription() {
+            const res = await fetch('http://localhost:8080/api/consultation/prescribe/', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({
+                    consultation: document.getElementById('targetConsultId').value,
+                    diagnosis: document.getElementById('diagnosis').value,
+                    prescription_text: document.getElementById('meds').value
+                })
+            });
+            alert("Prescription Issued Successfully!");
+        }
+
+        async function apiSearchPharmacy() {
+            const med = document.getElementById('medSearch').value;
+            const res = await fetch(`http://localhost:8080/api/pharmacy/availability/?medicine=${med}&area=Nabha`);
+            document.getElementById('pharmLogs').innerText = JSON.stringify(await res.json(), null, 2);
+        }
+    </script>
+</body>
+</html>

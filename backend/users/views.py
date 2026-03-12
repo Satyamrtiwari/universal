@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import CustomUser
-from .serializers import UserRegistrationSerializer, LoginSerializer
+from .serializers import UserRegistrationSerializer, LoginSerializer, UserProfileSerializer
 
 class RegistrationView(generics.GenericAPIView):
     serializer_class = UserRegistrationSerializer
@@ -51,3 +51,12 @@ class LoginView(generics.GenericAPIView):
                 })
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class ProfileUpdateView(generics.RetrieveUpdateAPIView):
+    """
+    Endpoint for users to update their profile (Name, Age, Phone, etc.)
+    """
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_object(self):
+        return self.request.user

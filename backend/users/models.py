@@ -9,7 +9,9 @@ class CustomUser(AbstractUser):
     )
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='PATIENT')
+    age = models.PositiveIntegerField(null=True, blank=True)
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
     area_village = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.CharField(max_length=6, null=True, blank=True)
     
