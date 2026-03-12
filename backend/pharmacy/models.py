@@ -1,7 +1,10 @@
 from django.db import models
 
+from django.conf import settings
+
 class Pharmacy(models.Model):
     name = models.CharField(max_length=200)
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pharmacy', null=True, blank=True)
     address = models.TextField()
     area_village = models.CharField(max_length=100)
     pincode = models.CharField(max_length=6)

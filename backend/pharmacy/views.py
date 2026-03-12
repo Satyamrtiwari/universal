@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from .models import Pharmacy, Medicine, Stock
-from .serializers import PharmacySerializer, StockSerializer
+from .serializers import PharmacySerializer, StockSerializer,MedicineSerializer
 
 class PharmacyListView(generics.GenericAPIView):
     serializer_class = PharmacySerializer
@@ -33,3 +33,35 @@ class MedicineAvailabilityView(generics.GenericAPIView):
             
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+class MedicineListView(generics.ListAPIView):
+    queryset = Medicine.objects.all()
+    serializer_class = MedicineSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class StockViewSet(generics.ListCreateAPIView):
+    serializer_class = StockSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'PHARMACIST':
+            # Filter stock by the pharmacy owned by the logged-in user
+            return Stock.objects.filter(pharmacy__owner=user)
+        return Stock.objects.all()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if hasattr(user, 'pharmacy'):
+            serializer.save(pharmacy=user.pharmacy)
+        else:
+            # Fallback or create a pharmacy for the user
+            pharmacy, created = Pharmacy.objects.get_or_create(
+                owner=user,
+                defaults={'name': user.store_name or f"{user.username}'s Pharmacy", 'area_village': user.area_village or "Nabha"}
+            )
+            serializer.save(pharmacy=pharmacy)
+
+class StockDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Stock.objects.all()
+    serializer_class = StockSerializer
+    permission_classes = [permissions.IsAuthenticated]

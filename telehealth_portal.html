@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeleHealth Pro Portal</title>
+    <title>TeleHealth Pro Portal - Hackathon Edition</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -15,277 +15,515 @@
             --border: #e2e8f0;
             --success: #10b981;
             --warning: #f59e0b;
+            --danger: #ef4444;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         /* Sidebar */
-        .sidebar { width: 260px; background: #0f172a; color: white; padding: 20px; display: flex; flex-direction: column; }
-        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .sidebar { width: 260px; background: #0f172a; color: white; padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; color: #818cf8; }
         .nav-item { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
         .nav-item:hover { background: #1e293b; }
         .nav-item.active { background: var(--primary); }
 
         /* Main Content */
-        .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .section { display: none; }
-        .section.active { display: block; }
+        .main { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+        .section { display: none; max-width: 1200px; margin: 0 auto; }
+        .section.active { display: block; animation: fadeIn 0.3s ease; }
 
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
 
-        h2 { margin-top: 0; font-size: 1.25rem; }
-        label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; color: var(--text-main); }
+        h1 { font-size: 2rem; margin-bottom: 30px; color: #0f172a; display: flex; justify-content: space-between; align-items: center; }
+        h2 { margin-top: 0; font-size: 1.25rem; color: #334155; border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 20px; }
+        
+        label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 8px; color: #475569; }
         input, select, textarea { 
-            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; font-size: 1rem;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; font-size: 0.95rem;
+            box-sizing: border-box; transition: 0.2s;
         }
-        .btn { 
-            background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 6px; 
-            font-weight: 600; cursor: pointer; transition: 0.2s;
-        }
-        .btn:hover { background: var(--primary-hover); }
-        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
 
-        pre { background: #1e293b; color: #34d399; padding: 16px; border-radius: 8px; font-size: 0.875rem; overflow-x: auto; max-height: 300px; }
-        .status-pill { padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-        .pill-pending { background: #fef3c7; color: #92400e; }
+        .btn { 
+            background: var(--primary); color: white; padding: 12px 24px; border: none; border-radius: 8px; 
+            font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+
+        pre { background: #0f172a; color: #10b981; padding: 20px; border-radius: 10px; font-size: 0.85rem; overflow-x: auto; max-height: 400px; border-left: 4px solid var(--primary); }
+        
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-patient { background: #e0e7ff; color: #3730a3; }
+        .badge-doctor { background: #fef3c7; color: #92400e; }
+        .badge-pharm { background: #d1fae5; color: #065f46; }
+
+        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; transition: 0.2s; }
+        .stock-item:hover { border-color: var(--primary); background: #f5f3ff; }
+
+        /* Low Bandwidth Mode */
+        .low-bandwidth-active .card { box-shadow: none; border-radius: 0; }
+        .low-bandwidth-active .btn { border-radius: 0; font-weight: normal; }
+
+        .mic-active { background: var(--danger) !important; animation: pulse 1.5s infinite; color: white !important; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #lowBandwidthToggle { position: absolute; top: 20px; right: 40px; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text-sub); }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="">
     <div class="sidebar">
-        <div class="logo">🏥 TeleHealth Pro</div>
-        <div class="nav-item active" onclick="showSection('auth')">🔐 Auth & Profile</div>
-        <div class="nav-item" onclick="showSection('patient')">🧑 Patient Dashboard</div>
-        <div class="nav-item" onclick="showSection('doctor')">🩺 Doctor Dashboard</div>
-        <div class="nav-item" onclick="showSection('pharmacy')">💊 Pharmacy Portal</div>
+        <div class="logo">✨ TeleHealth Pro</div>
+        <div class="nav-item active" onclick="showSection('auth', this)">🔐 <span>Identity Centre</span></div>
+        <div class="nav-item" onclick="showSection('patient', this)">🧑 <span>Patient Hub</span></div>
+        <div class="nav-item" onclick="showSection('doctor', this)">🩺 <span>Doctor Terminal</span></div>
+        <div class="nav-item" onclick="showSection('pharmacy', this)">💊 <span>Pharmacy Manager</span></div>
+        
+        <div style="margin-top:auto; padding-top:20px; border-top:1px solid #1e293b; font-size:0.8rem; color:#64748b;">
+            Hackathon Version 2.0<br>
+            Roles: RBAC Integrated
+        </div>
     </div>
 
     <div class="main">
+        <div id="lowBandwidthToggle">
+            <span>Lite Mode (Low Data)</span>
+            <input type="checkbox" id="lwToggle" style="width: auto; margin:0;" onchange="toggleLiteMode()">
+        </div>
+
         <!-- Auth Section -->
         <div id="auth" class="section active">
-            <h1>Authentication & Profile</h1>
+            <h1>Authentication & Onboarding</h1>
             <div class="grid">
                 <div class="card">
-                    <h2>Step 1: Register/Login</h2>
+                    <h2>Step 1: Secure Login</h2>
                     <label>Username</label>
-                    <input type="text" id="username" value="user_test">
+                    <input type="text" id="username" placeholder="Enter username">
                     <label>Password</label>
-                    <input type="password" id="password" value="password123">
-                    <label>Role</label>
-                    <select id="role">
-                        <option value="PATIENT">Patient</option>
-                        <option value="DOCTOR">Doctor</option>
-                        <option value="PHARMACIST">Pharmacist</option>
+                    <input type="password" id="password" placeholder="••••••••">
+                    <label>Access Role</label>
+                    <select id="role" onchange="renderProfileFields()">
+                        <option value="PATIENT">Patient (Standard)</option>
+                        <option value="DOCTOR">Doctor (Consultant)</option>
+                        <option value="PHARMACIST">Pharmacist (Inventory)</option>
                     </select>
-                    <button class="btn" onclick="apiAuth('register')">Register</button>
-                    <button class="btn btn-outline" onclick="apiAuth('login')">Login</button>
-                </div>
-                <div class="card">
-                    <h2>Step 2: Complete Profile</h2>
-                    <label>Full Name</label>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="fname" placeholder="First">
-                        <input type="text" id="lname" placeholder="Last">
+                        <button class="btn" style="flex:1;" onclick="apiAuth('register')">Register Now</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="apiAuth('login')">Login</button>
                     </div>
-                    <label>Age</label>
-                    <input type="number" id="uage" placeholder="e.g. 25">
-                    <label>Phone</label>
-                    <input type="text" id="uphone" placeholder="9876543210">
-                    <button class="btn" onclick="apiProfile()">Update Profile</button>
+                    <p id="roleBadgeContainer" style="margin-top:20px;"></p>
+                </div>
+                <div class="card" id="profileCard">
+                    <h2>Step 2: Profile Completion</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;">Fill this once to unlock dashboard features.</p>
+                    <div id="profileFields"></div>
+                    <button class="btn btn-success" style="width:100%;" onclick="apiProfile()">Save Official Records</button>
                 </div>
             </div>
             <div class="card">
-                <h2>System Logs</h2>
-                <pre id="authLogs">Waiting for action...</pre>
+                <h2>Real-time API Logs</h2>
+                <pre id="authLogs">Waiting for your first connection...</pre>
             </div>
         </div>
 
         <!-- Patient Section -->
         <div id="patient" class="section">
-            <h1>Patient Dashboard</h1>
+            <h1>Patient Wellness Hub</h1>
             <div class="grid">
-                <div class="card">
-                    <h2>AI Symptom Checker</h2>
-                    <textarea id="symptoms" placeholder="How are you feeling? (English, Hindi, Punjabi)" rows="3"></textarea>
-                    <button class="btn" onclick="apiSymptomCheck()">Analyze Symptoms</button>
-                    <pre id="aiResult" style="margin-top:20px;">AI Analysis will appear here...</pre>
+                <div class="card" style="grid-column: span 2;">
+                    <h2>AI Voice Symptom Analyzer</h2>
+                    <div style="display:flex; gap:15px; align-items:flex-start;">
+                        <div style="flex:1;">
+                            <label>Describe Symptoms (Tap Mic to Start)</label>
+                            <div style="position:relative;">
+                                <textarea id="symptoms" placeholder="Start typing or talking..." rows="4" style="padding-right: 50px;"></textarea>
+                                <button id="micBtn" class="btn" onclick="toggleVoice()" style="position:absolute; top:10px; right:10px; padding: 10px; border-radius: 50%;">🎤</button>
+                            </div>
+                            <button class="btn" onclick="apiSymptomCheck()" style="width:100%; margin-top:10px;">✨ Run AI Diagnosis</button>
+                        </div>
+                        <div style="flex:1;">
+                            <label>AI Analysis Report</label>
+                            <pre id="aiResult" style="height: 160px; font-size: 0.8rem;">Clinical report will generate here...</pre>
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="card">
-                    <h2>Book Consultation</h2>
-                    <label>Specialty Needed</label>
+                    <h2>🏥 Tele-Consultation</h2>
+                    <label>Select Specialist</label>
+                    <select id="doctorSelect"><option>Click Refresh Doctors →</option></select>
+                    <button class="btn btn-outline" style="width:100%; margin-bottom:15px;" onclick="apiFetchDoctors()">🔍 Refresh Doctors</button>
+                    <label>Specialty Required</label>
                     <input type="text" id="specialty" value="General Physician">
-                    <button class="btn" onclick="apiBookConsultation()">Request Consultation</button>
-                    <p style="font-size: 0.8rem; color: var(--text-sub); margin-top: 10px;">
-                        This will automatically use your AI summary and generate a private video room.
-                    </p>
+                    <button class="btn" style="width:100%;" onclick="apiBookConsultation()">⚡ Book Instantly</button>
+                </div>
+
+                <div class="card">
+                    <h2>💊 Medicine Locater</h2>
+                    <label>Find Availability</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="medSearch" placeholder="Medicine Name">
+                        <input type="text" id="areaSearch" placeholder="Area (e.g. Nabha)">
+                    </div>
+                    <button class="btn btn-outline" style="width:100%;" onclick="apiSearchPharmacy()">Search Live Stock</button>
+                    <div id="pharmResults" style="margin-top:15px; max-height: 150px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="card" style="grid-column: span 2;">
+                    <h2>📜 My Digital Health Passport</h2>
+                    <button class="btn btn-outline" onclick="apiFetchHistory()">Reload Medical History</button>
+                    <div id="historyList" style="margin-top:20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
                 </div>
             </div>
         </div>
 
         <!-- Doctor Section -->
         <div id="doctor" class="section">
-            <h1>Doctor Terminal</h1>
-            <div class="card">
-                <h2>Incoming Requests</h2>
-                <button class="btn btn-outline" onclick="apiFetchRequests()">Refresh List</button>
-                <div id="requestList" style="margin-top:20px;">
-                    <p>No appointments found. Fetching...</p>
+            <h1>Physician Terminal v2</h1>
+            <div class="grid" style="grid-template-columns: 1fr 1.5fr;">
+                <div class="card">
+                    <h2>Patient Queue</h2>
+                    <button class="btn btn-outline" style="width:100%;" onclick="apiFetchRequests()">🔄 Refresh Queue</button>
+                    <div id="requestList" style="margin-top:20px;"></div>
                 </div>
-            </div>
-            <div class="card">
-                <h2>Prescription Pad</h2>
-                <label>Consultation ID</label>
-                <input type="text" id="targetConsultId" placeholder="ID from list above">
-                <label>Diagnosis</label>
-                <textarea id="diagnosis" rows="2"></textarea>
-                <label>Prescribed Medicines</label>
-                <textarea id="meds" rows="3" placeholder="Medicine name, dosage, timing"></textarea>
-                <button class="btn" onclick="apiSubmitPrescription()">Finalize & Issue Prescription</button>
+                <div class="card">
+                    <h2>Active Consultation Detail</h2>
+                    <div id="activeConsultInfo" style="margin-bottom:20px; padding:15px; background:#f8fafc; border-radius:8px; display:none;">
+                        <h3 id="activePatientHead" style="margin:0; font-size:1rem;"></h3>
+                        <p id="activeAIReport" style="font-size:0.85rem; color: #64748b; margin:10px 0;"></p>
+                        <button class="btn btn-success btn-small" id="callBtn" onclick="">📞 Enter Video Room</button>
+                    </div>
+                    
+                    <label>Consultation ID Reference</label>
+                    <input type="text" id="targetConsultId" placeholder="ID from left queue">
+                    <label>Official Diagnosis</label>
+                    <textarea id="diagnosis" rows="3" placeholder="Clinical findings..."></textarea>
+                    <label>Prescription Details</label>
+                    <textarea id="meds" rows="4" placeholder="Drug Name | Dosage | Frequency"></textarea>
+                    <button class="btn" style="width:100%;" onclick="apiSubmitPrescription()">✅ Finalize & Notify Patient</button>
+                </div>
             </div>
         </div>
 
         <!-- Pharmacy Section -->
         <div id="pharmacy" class="section">
-            <h1>Pharmacy Portal</h1>
+            <h1>Inventory Commander</h1>
             <div class="grid">
-                <div class="card">
-                    <h2>Search Medicine</h2>
-                    <label>Medicine Name</label>
-                    <input type="text" id="medSearch" value="Paracetamol">
-                    <label>Area</label>
-                    <input type="text" id="areaSearch" value="Nabha">
-                    <button class="btn" onclick="apiSearchPharmacy()">Find Availability</button>
+                <div class="card" style="grid-column: span 2;">
+                    <h2>Smart Stock Management</h2>
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="display:flex; gap:10px; flex:1;">
+                            <input type="text" id="stockFilter" placeholder="Filter by name..." style="margin:0; max-width: 300px;" onkeyup="filterStock()">
+                            <button class="btn btn-outline" onclick="apiFetchStock()">🔄 Refresh List</button>
+                        </div>
+                        <div id="stockStats" class="badge badge-pharm">0 Medicines Linked</div>
+                    </div>
+                    
+                    <div style="display:flex; gap:25px;">
+                        <div style="flex:1.5;">
+                            <h3>Current Inventory</h3>
+                            <div id="stockList" style="border: 1px solid var(--border); border-radius: 12px; min-height: 200px; padding: 10px; background:#fafafa;"></div>
+                        </div>
+                        <div style="flex:1;">
+                            <h3>Add Warehouse stock</h3>
+                            <label>Reference Medicine</label>
+                            <select id="medSelect"><option>Loading...</option></select>
+                            <label>In-Stock Quantity</label>
+                            <input type="number" id="stockQty" value="100">
+                            <label>Operational Status</label>
+                            <select id="stockStatus">
+                                <option value="true">In Stock (Active)</option>
+                                <option value="false">Out of Stock</option>
+                            </select>
+                            <button class="btn" style="width:100%;" onclick="apiAddStock()">⏫ Add to My Pharmacy</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h2>Pharmacist Stock View</h2>
-                    <p>Only visible to users with PHARMACIST role.</p>
-                    <button class="btn btn-outline" onclick="alert('Fetching stock...')">Manage Inventory</button>
-                </div>
-            </div>
-            <div class="card">
-                <h2>Inventory Results</h2>
-                <pre id="pharmLogs">Search results will appear here...</pre>
             </div>
         </div>
     </div>
 
     <script>
         let TOKEN = "";
+        let CURRENT_ROLE = "";
         let AI_SUMMARY = "";
+        let recognition = null;
+        let LITE_MODE = false;
 
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.onstart = () => { document.getElementById('micBtn').classList.add('mic-active'); };
+            recognition.onend = () => { document.getElementById('micBtn').classList.remove('mic-active'); };
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                document.getElementById('symptoms').value += (document.getElementById('symptoms').value ? " " : "") + text;
+            };
         }
 
+        function toggleVoice() {
+            if (!recognition) return alert("Microphone features require Chrome or Edge.");
+            try { recognition.start(); } catch(e) { recognition.stop(); }
+        }
+
+        function toggleLiteMode() {
+            LITE_MODE = document.getElementById('lwToggle').checked;
+            document.body.classList.toggle('low-bandwidth-active', LITE_MODE);
+        }
+
+        function showSection(id, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const sec = document.getElementById(id);
+            if(sec) sec.classList.add('active');
+            element.classList.add('active');
+            
+            // Context specific actions
+            if(id === 'pharmacy' && TOKEN) { apiFetchMedicines(); apiFetchStock(); }
+            if(id === 'patient' && TOKEN) { renderProfileFields(); }
+        }
+
+        function renderProfileFields() {
+            const container = document.getElementById('profileFields');
+            const role = document.getElementById('role').value;
+            let html = `<label>First Name</label><input type="text" id="fname" placeholder="John">
+                        <label>Last Name</label><input type="text" id="lname" placeholder="Doe">`;
+            
+            if (role === 'PHARMACIST') {
+                html = `<label>Official Store Name</label><input type="text" id="sname" placeholder="City Health Pharmacy">
+                        <label>Store Full Address</label><textarea id="uaddress" placeholder="123 Street, Nabha"></textarea>
+                        <label>6-Digit Pincode</label><input type="text" id="upincode" placeholder="147201">`;
+            } else if (role === 'DOCTOR') {
+                html += `<label>Specialization Bio</label><textarea id="ubio" placeholder="MBBS, MD - Specialist in rural health"></textarea>
+                         <label>Consultation Fee</label><input type="number" id="uage" placeholder="500">`;
+            } else {
+                html += `<label>Patient Age</label><input type="number" id="uage" placeholder="25">
+                         <label>Emergency Phone</label><input type="text" id="uphone" placeholder="98765xxxx">`;
+            }
+            container.innerHTML = html;
+        }
+        renderProfileFields();
+
         async function apiAuth(type) {
-            const url = `http://localhost:8080/api/auth/${type}/`;
-            const payload = {
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
-                role: document.getElementById('role').value
-            };
+            const logs = document.getElementById('authLogs');
+            let username = document.getElementById('username').value.trim();
+            // Automatically clean username for rural users (Hackathon Polish)
+            if (username.includes(" ")) {
+                console.log("Cleaning username: replacing spaces with underscores");
+                username = username.replace(/\s+/g, '_');
+                document.getElementById('username').value = username;
+            }
+
             try {
-                const res = await fetch(url, {
+                const res = await fetch(`http://localhost:8080/api/auth/${type}/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        username: username,
+                        password: document.getElementById('password').value,
+                        role: document.getElementById('role').value
+                    })
                 });
                 const data = await res.json();
+                
+                if (!res.ok) {
+                    let errMsg = "Error: ";
+                    if (data.username) errMsg += "Username " + data.username[0];
+                    else if (data.detail) errMsg += data.detail;
+                    else errMsg += JSON.stringify(data);
+                    alert(errMsg);
+                }
+
                 if (data.tokens) TOKEN = data.tokens.access;
-                document.getElementById('authLogs').innerText = JSON.stringify(data, null, 2);
-            } catch (e) { document.getElementById('authLogs').innerText = "Error: " + e; }
+                if (data.user) {
+                    CURRENT_ROLE = data.user.role;
+                    const badge = `<span class="badge ${data.user.role === 'PATIENT' ? 'badge-patient' : data.user.role === 'DOCTOR' ? 'badge-doctor' : 'badge-pharm'}">${data.user.role} Verified</span>`;
+                    document.getElementById('roleBadgeContainer').innerHTML = badge;
+                }
+                logs.innerText = JSON.stringify(data, null, 2);
+            } catch (e) { logs.innerText = "Fatal: " + e; }
         }
 
         async function apiProfile() {
             const res = await fetch('http://localhost:8080/api/auth/profile/', {
                 method: 'PATCH',
-                headers: { 
-                    'Authorization': `Bearer ${TOKEN}`,
-                    'Content-Type': 'application/json' 
-                },
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    first_name: document.getElementById('fname').value,
-                    last_name: document.getElementById('lname').value,
-                    age: document.getElementById('uage').value,
-                    phone_number: document.getElementById('uphone').value
+                    first_name: document.getElementById('fname')?.value || "",
+                    last_name: document.getElementById('lname')?.value || "",
+                    store_name: document.getElementById('sname')?.value || "",
+                    address: document.getElementById('uaddress')?.value || "",
+                    age: document.getElementById('uage')?.value || null,
+                    phone_number: document.getElementById('uphone')?.value || "",
+                    pincode: document.getElementById('upincode')?.value || ""
                 })
             });
             document.getElementById('authLogs').innerText = JSON.stringify(await res.json(), null, 2);
+            alert("Profile Synchronized!");
         }
 
         async function apiSymptomCheck() {
+            document.getElementById('aiResult').innerText = "AI Processing... [Analyzing symptoms]";
             const res = await fetch('http://localhost:8000/api/ai/symptom-check/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text_content: document.getElementById('symptoms').value,
-                    language: 'en'
-                })
+                body: JSON.stringify({ text_content: document.getElementById('symptoms').value, language: 'en' })
             });
             const data = await res.json();
-            AI_SUMMARY = data.analysis || "No summary available";
+            AI_SUMMARY = data.analysis;
             document.getElementById('aiResult').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function apiSearchPharmacy() {
+            const results = document.getElementById('pharmResults');
+            results.innerHTML = "🔍 Scanning pharmacies...";
+            const med = document.getElementById('medSearch').value;
+            const area = document.getElementById('areaSearch').value;
+            const res = await fetch(`http://localhost:8080/api/pharmacy/availability/?medicine=${med}&area=${area}`);
+            const data = await res.json();
+            results.innerHTML = data.length ? "" : "No stock found in this area.";
+            data.forEach(s => {
+                results.innerHTML += `
+                    <div style="background:#f1f5f9; padding:8px 12px; border-radius:6px; margin-bottom:6px; border-left:4px solid ${s.is_available ? '#10b981':'#ef4444'}">
+                        <b>${s.medicine_name}</b> @ ${s.pharmacy_name}<br>
+                        <small>${s.is_available ? '✅ Available Now' : '❌ Out of Stock'}</small>
+                    </div>`;
+            });
+        }
+
+        async function apiFetchStock() {
+            const res = await fetch('http://localhost:8080/api/pharmacy/stock/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+            const data = await res.json();
+            window.allStock = data;
+            document.getElementById('stockStats').innerText = `${data.length} Medicines Linked`;
+            displayStock(data);
+        }
+
+        function displayStock(data) {
+            const list = document.getElementById('stockList');
+            list.innerHTML = data.map(s => `
+                <div class="stock-item">
+                    <div>
+                        <b style="color:var(--primary);">${s.medicine_name}</b><br>
+                        <small style="color:var(--text-sub);">Current Count: <b>${s.quantity}</b> Units</small>
+                    </div>
+                    <button class="btn btn-danger" style="padding:6px 12px; font-size:0.75rem;" onclick="apiDeleteStock(${s.id})">❌ Remove</button>
+                </div>
+            `).join('') || "<div style='text-align:center; padding:20px; color:#94a3b8;'>Empty Warehouse</div>";
+        }
+
+        function filterStock() {
+            const term = document.getElementById('stockFilter').value.toLowerCase();
+            const filtered = window.allStock.filter(s => s.medicine_name.toLowerCase().includes(term));
+            displayStock(filtered);
+        }
+
+        async function apiAddStock() {
+            await fetch('http://localhost:8080/api/pharmacy/stock/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    medicine_id: document.getElementById('medSelect').value, 
+                    quantity: document.getElementById('stockQty').value, 
+                    is_available: document.getElementById('stockStatus').value === 'true' 
+                })
+            });
+            apiFetchStock();
+            alert("Inventory Updated!");
+        }
+
+        async function apiDeleteStock(id) {
+            if(!confirm("Are you sure?")) return;
+            await fetch(`http://localhost:8080/api/pharmacy/stock/${id}/`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${TOKEN}` } });
+            apiFetchStock();
+        }
+
+        async function apiFetchMedicines() {
+            const res = await fetch('http://localhost:8080/api/pharmacy/medicines/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+            const data = await res.json();
+            document.getElementById('medSelect').innerHTML = data.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        }
+
+        async function apiFetchDoctors() {
+            const btn = event.currentTarget;
+            btn.innerText = "Searching...";
+            const res = await fetch('http://localhost:8080/api/auth/doctors/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+            const data = await res.json();
+            btn.innerText = "🔍 Refresh Doctors";
+            document.getElementById('doctorSelect').innerHTML = data.map(d => `<option value="${d.id}">${d.first_name || d.username} - Expert</option>`).join('');
         }
 
         async function apiBookConsultation() {
             const res = await fetch('http://localhost:8080/api/consultation/request/', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${TOKEN}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({
-                    specialty_required: document.getElementById('specialty').value,
-                    ai_summary: AI_SUMMARY,
-                    urgency_level: 'MEDIUM'
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    specialty_required: document.getElementById('specialty').value, 
+                    ai_summary: AI_SUMMARY || "Seeking medical advice", 
+                    doctor: document.getElementById('doctorSelect').value 
                 })
             });
             const data = await res.json();
-            alert("Consultation Requested! Room ID: " + data.room_name);
+            alert("Booking Confirmed! Meeting ID: " + data.room_name);
+        }
+
+        async function apiFetchHistory() {
+            const res = await fetch('http://localhost:8080/api/auth/health-history/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+            const data = await res.json();
+            document.getElementById('historyList').innerHTML = data.map(h => `
+                <div class="card" style="padding:15px; margin:0;">
+                    <div style="font-size:0.75rem; color:var(--text-sub);">${new Date(h.created_at).toLocaleDateString()}</div>
+                    <div style="font-weight:700; margin:5px 0;">${h.specialty_required}</div>
+                    <div style="font-size:0.8rem; height:40px; overflow:hidden;">${h.ai_summary}</div>
+                    <div class="badge badge-doctor" style="margin-top:10px;">Status: ${h.status}</div>
+                </div>
+            `).join('') || "No history records found.";
         }
 
         async function apiFetchRequests() {
-            const res = await fetch('http://localhost:8080/api/consultation/list/', {
-                headers: { 'Authorization': `Bearer ${TOKEN}` }
-            });
+            const res = await fetch('http://localhost:8080/api/consultation/list/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
             const data = await res.json();
-            const list = document.getElementById('requestList');
-            list.innerHTML = "";
-            data.forEach(req => {
-                list.innerHTML += `
-                    <div style="border:1px solid #eee; padding:15px; margin-bottom:10px; border-radius:8px;">
-                        <strong>ID:</strong> ${req.id} | <strong>Status:</strong> ${req.status} <br>
-                        <strong>Patient Story:</strong> ${req.ai_summary} <br>
-                        <button class="btn btn-outline" onclick="window.open('https://meet.jit.si/${req.room_name}')">Start Video Call</button>
+            document.getElementById('requestList').innerHTML = data.map(req => `
+                <div class="stock-item" onclick="selectConsult('${req.id}', '${req.room_name}', '${req.ai_summary}')">
+                    <div>
+                        <b>Request #${req.id}</b><br>
+                        <small>Patient Symptom Summary Available</small>
                     </div>
-                `;
-            });
+                    <div class="badge badge-patient">${req.status}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectConsult(id, room, ai) {
+            document.getElementById('targetConsultId').value = id;
+            document.getElementById('activeConsultInfo').style.display = 'block';
+            document.getElementById('activePatientHead').innerText = "Session #" + id;
+            document.getElementById('activeAIReport').innerText = "AI Findings: " + ai;
+            document.getElementById('callBtn').onclick = () => window.open('https://meet.jit.si/' + room);
         }
 
         async function apiSubmitPrescription() {
-            const res = await fetch('http://localhost:8080/api/consultation/prescribe/', {
+            await fetch('http://localhost:8080/api/consultation/prescribe/', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${TOKEN}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({
-                    consultation: document.getElementById('targetConsultId').value,
-                    diagnosis: document.getElementById('diagnosis').value,
-                    prescription_text: document.getElementById('meds').value
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    consultation: document.getElementById('targetConsultId').value, 
+                    diagnosis: document.getElementById('diagnosis').value, 
+                    prescription_text: document.getElementById('meds').value 
                 })
             });
-            alert("Prescription Issued Successfully!");
-        }
-
-        async function apiSearchPharmacy() {
-            const med = document.getElementById('medSearch').value;
-            const res = await fetch(`http://localhost:8080/api/pharmacy/availability/?medicine=${med}&area=Nabha`);
-            document.getElementById('pharmLogs').innerText = JSON.stringify(await res.json(), null, 2);
+            alert("Prescription Saved & Digital Health Passport Updated.");
+            apiFetchRequests();
         }
     </script>
 </body>

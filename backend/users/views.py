@@ -58,5 +58,25 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def get_object(self):
-        return self.request.user
+from consultation.models import ConsultationRequest
+from consultation.serializers import ConsultationRequestSerializer
+
+class DoctorListView(generics.ListAPIView):
+    """
+    Endpoint for patients to see a list of available doctors.
+    """
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return CustomUser.objects.filter(role='DOCTOR')
+
+class PatientHealthHistoryView(generics.ListAPIView):
+    """
+    Endpoint for patients to see their full medical history (AI Summaries + Prescriptions).
+    """
+    serializer_class = ConsultationRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return ConsultationRequest.objects.filter(patient=self.request.user).order_by('-created_at')

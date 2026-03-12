@@ -14,10 +14,13 @@ class MedicineSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     medicine_name = serializers.ReadOnlyField(source='medicine.name')
     pharmacy_name = serializers.ReadOnlyField(source='pharmacy.name')
+    medicine_id = serializers.PrimaryKeyRelatedField(
+        queryset=Medicine.objects.all(), source='medicine'
+    )
     
     class Meta:
         model = Stock
-        fields = '__all__'
+        fields = ('id', 'medicine_id', 'medicine_name', 'pharmacy_name', 'quantity', 'is_available')
         
     def to_representation(self, instance):
         representation = super().to_representation(instance)
